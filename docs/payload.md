@@ -8,7 +8,7 @@ it changes here first.
 ## Topics
 
 The agent publishes under a per-inverter **base topic** (configurable; default base
-`solar`, e.g. `solar/inverter/01`):
+`ghrian`, e.g. `ghrian/inverter/01`):
 
 | Topic | Retained | QoS | Payload |
 | --- | --- | --- | --- |

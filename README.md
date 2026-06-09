@@ -32,7 +32,7 @@ Each module is its own repository with its own README and release lifecycle.
 
 1. The **agent** runs next to the inverter (or anywhere that can reach it on the
    network), polls a curated set of registers, and publishes one MQTT message per
-   inverter per cycle to a per-inverter topic (e.g. `solar/inverter/01`), plus a
+   inverter per cycle to a per-inverter topic (e.g. `ghrian/inverter/01`), plus a
    retained `<topic>/availability` flag.
 2. Any number of **consumers** subscribe to that topic. They never need to know
    about Modbus, the inverter's quirks, or each other — they just read the
@@ -51,7 +51,7 @@ You need an MQTT broker (e.g. Mosquitto) the agent and consumers can both reach.
 
 1. **Run the agent** against your inverter — see
    [ghrian-agent](https://github.com/zavan/ghrian-agent). Point it at your
-   inverter's IP and your broker; it starts publishing under `solar/#`.
+   inverter's IP and your broker; it starts publishing under `ghrian/#`.
 2. **Run the server** — see
    [ghrian-server](https://github.com/zavan/ghrian-server). Configure the same
    broker and add an inverter whose topic matches what the agent publishes. The
