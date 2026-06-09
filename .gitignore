@@ -4,6 +4,7 @@
 /agent/
 /server/
 /homekit/
+/apple/
 
 # Local stack secrets (filled-in copy of .env.example).
 .env

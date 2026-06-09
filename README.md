@@ -6,7 +6,7 @@ independent consumers do something useful with it — persist it, chart it, or b
 it into your smart home.
 
 ```
-inverter ──Modbus──▶ [agent] ──MQTT──┬──▶ [server]  ── DB · dashboard · REST API ──▶ clients
+inverter ──Modbus──▶ [agent] ──MQTT──┬──▶ [server]  ── DB · dashboard · REST API ──▶ [apple] · clients
                                       └──▶ [homekit] ── HAP ──▶ Apple Home / Siri
 ```
 
@@ -30,6 +30,7 @@ Each module is its own repository with its own README and release lifecycle.
 | --- | --- | --- | --- |
 | **agent** | Polls the inverter over Modbus TCP and publishes a rich, self-describing JSON stream to MQTT. Gentle on the inverter (range-merged reads, one persistent connection). | Go | [ghrian-agent](https://github.com/zavan/ghrian-agent) |
 | **server** | Subscribes to the stream, persists it, and serves a Hotwire dashboard (live power flow, energy & cost history) plus a token-authenticated REST API. Installable PWA. | Rails 8 | [ghrian-server](https://github.com/zavan/ghrian-server) |
+| **apple** | Native app consuming the server's REST API: live power flow, daily energy, and intraday charts, plus a widget and a macOS menu-bar extra. Universal across macOS, iOS & iPadOS. | Swift / SwiftUI | [ghrian-apple](https://github.com/zavan/ghrian-apple) |
 
 > A HomeKit bridge (`homekit`) also consumes the same stream to expose the inverter
 > in Apple Home; it isn't public yet.
@@ -46,6 +47,8 @@ Each module is its own repository with its own README and release lifecycle.
 3. The **server** is the reference consumer: it stores every reading, rolls up
    daily/monthly/yearly energy and cost totals, broadcasts live updates to the
    dashboard, and re-serves everything over REST for other clients.
+4. The **apple** app is the reference REST client: a native macOS/iOS/iPadOS
+   dashboard (plus widget and menu-bar extra) built on the server's `/api/v1`.
 
 See [docs/architecture.md](docs/architecture.md) for the design principles and
 [docs/payload.md](docs/payload.md) for the MQTT message format every module agrees
