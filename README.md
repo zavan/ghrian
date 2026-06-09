@@ -71,9 +71,10 @@ cp .env.example .env     # then fill in the generated secrets (instructions insi
 docker compose up -d     # starts broker + server web + listener
 ```
 
-Open <http://localhost:3000>, create the first account (it becomes the admin), then
-under **MQTT** set host `broker`, port `1883`, base topic `ghrian`, and add an
-inverter with topic `ghrian/inverter/01`.
+The broker connection is preconfigured (the server is seeded with host `broker` /
+base topic `ghrian` on first boot), so just open <http://localhost:3000>, create the
+first account (it becomes the admin), and add an inverter with topic
+`ghrian/inverter/01`.
 
 To also run the agent against a real inverter (set `MODBUS_ADDR` in `.env` first):
 
@@ -81,7 +82,8 @@ To also run the agent against a real inverter (set `MODBUS_ADDR` in `.env` first
 docker compose --profile agent up -d
 ```
 
-Images are multi-arch (amd64 + arm64):
+Images default to `latest`; pin reproducible deploys with `SERVER_TAG` / `AGENT_TAG`
+in `.env`. Both are multi-arch (amd64 + arm64):
 [`zavan/ghrian-agent`](https://hub.docker.com/r/zavan/ghrian-agent) ·
 [`zavan/ghrian-server`](https://hub.docker.com/r/zavan/ghrian-server).
 
