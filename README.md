@@ -16,6 +16,12 @@ Adding a new consumer never means touching the inverter or the agent — you onl
 subscribe to the stream. The whole pipeline is **read-only**: nothing ghrian runs
 ever writes to your inverter.
 
+## The name
+
+**ghrian** comes from the Irish word *grian*, "sun" — as in *an ghrian*, "the sun",
+the lenited spelling the project borrows. A fitting patron for solar monitoring: the
+sun is the logo, and `ghrian` is the default MQTT topic the whole stack speaks over.
+
 ## Modules
 
 Each module is its own repository with its own README and release lifecycle.
@@ -84,8 +90,8 @@ docker compose --profile agent up -d
 
 Images default to `latest`; pin reproducible deploys with `SERVER_TAG` / `AGENT_TAG`
 in `.env`. Both are multi-arch (amd64 + arm64):
-[`zavan/ghrian-agent`](https://hub.docker.com/r/zavan/ghrian-agent) ·
-[`zavan/ghrian-server`](https://hub.docker.com/r/zavan/ghrian-server).
+[`felipezavan/ghrian-agent`](https://hub.docker.com/r/felipezavan/ghrian-agent) ·
+[`felipezavan/ghrian-server`](https://hub.docker.com/r/felipezavan/ghrian-server).
 
 ## License
 

@@ -44,7 +44,7 @@ services:
       start_period: 5s
 
   web:
-    image: zavan/ghrian-server:${SERVER_TAG:-latest}
+    image: felipezavan/ghrian-server:${SERVER_TAG:-latest}
     restart: unless-stopped
     depends_on:
       broker:
@@ -70,7 +70,7 @@ services:
       start_period: 20s
 
   listener:
-    image: zavan/ghrian-server:${SERVER_TAG:-latest}
+    image: felipezavan/ghrian-server:${SERVER_TAG:-latest}
     restart: unless-stopped
     command: bin/mqtt-listener
     depends_on:
@@ -83,7 +83,7 @@ services:
       - storage:/rails/storage
 
   agent:
-    image: zavan/ghrian-agent:${AGENT_TAG:-latest}
+    image: felipezavan/ghrian-agent:${AGENT_TAG:-latest}
     restart: unless-stopped
     profiles: ["agent"]          # only starts with: docker compose --profile agent up
     depends_on:
