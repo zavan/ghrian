@@ -1,0 +1,92 @@
+# Run the whole ghrian stack from the published images:
+#
+#   cp .env.example .env   # then fill in the generated secrets (see that file)
+#   docker compose up -d
+#
+# Then open http://localhost:3000, create the first (admin) account, and under
+# MQTT set host=broker, port=1883, base topic=ghrian, and add an inverter with
+# topic ghrian/inverter/01. The agent (optional profile) publishes there.
+#
+# broker + web + listener start by default. The agent only starts with its
+# profile (it needs a real inverter to talk to):
+#   docker compose --profile agent up -d
+name: ghrian
+
+configs:
+  mosquitto:
+    content: |
+      listener 1883
+      allow_anonymous true
+      persistence true
+      persistence_location /mosquitto/data/
+      log_dest stdout
+
+volumes:
+  storage:       # SQLite databases (shared by web + listener)
+  broker-data:   # mosquitto persistence
+
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    configs:
+      - source: mosquitto
+        target: /mosquitto/config/mosquitto.conf
+    volumes:
+      - broker-data:/mosquitto/data
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/broker/uptime", "-C", "1", "-W", "3"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  web:
+    image: zavan/ghrian-server:latest
+    restart: unless-stopped
+    depends_on:
+      broker:
+        condition: service_healthy
+    environment: &server-env
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set it in .env (see .env.example)}
+      AR_ENCRYPTION_PRIMARY_KEY: ${AR_ENCRYPTION_PRIMARY_KEY:?set it in .env}
+      AR_ENCRYPTION_DETERMINISTIC_KEY: ${AR_ENCRYPTION_DETERMINISTIC_KEY:?set it in .env}
+      AR_ENCRYPTION_KEY_DERIVATION_SALT: ${AR_ENCRYPTION_KEY_DERIVATION_SALT:?set it in .env}
+    ports:
+      - "3000:80"
+    volumes:
+      - storage:/rails/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  listener:
+    image: zavan/ghrian-server:latest
+    restart: unless-stopped
+    command: bin/mqtt-listener
+    depends_on:
+      broker:
+        condition: service_healthy
+      web:                       # web migrates the DB on boot; wait for it
+        condition: service_healthy
+    environment: *server-env
+    volumes:
+      - storage:/rails/storage
+
+  agent:
+    image: zavan/ghrian-agent:latest
+    restart: unless-stopped
+    profiles: ["agent"]          # only starts with: docker compose --profile agent up
+    depends_on:
+      broker:
+        condition: service_healthy
+    command:
+      - --device-model=${DEVICE_MODEL:-solis_s5-eh1p5k-l}
+      - --modbus=${MODBUS_ADDR:-192.168.1.50:502}   # set MODBUS_ADDR in .env to your inverter
+      - --mqtt-broker=tcp://broker:1883
+      - --mqtt-topic=ghrian/inverter/01

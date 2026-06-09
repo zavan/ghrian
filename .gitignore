@@ -5,6 +5,9 @@
 /server/
 /homekit/
 
+# Local stack secrets (filled-in copy of .env.example).
+.env
+
 # OS / editor / tooling
 .DS_Store
 .DS_Store?

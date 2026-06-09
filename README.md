@@ -59,6 +59,32 @@ You need an MQTT broker (e.g. Mosquitto) the agent and consumers can both reach.
 
 Each module's README has the full, copy-pasteable setup for that piece.
 
+## Run the whole stack (Docker Compose)
+
+This repo ships a [`compose.yml`](compose.yml) that runs the broker, the server
+(web + MQTT listener), and optionally the agent from the published images — no
+Rails `master.key` required, since the server reads its secrets from the
+environment.
+
+```bash
+cp .env.example .env     # then fill in the generated secrets (instructions inside)
+docker compose up -d     # starts broker + server web + listener
+```
+
+Open <http://localhost:3000>, create the first account (it becomes the admin), then
+under **MQTT** set host `broker`, port `1883`, base topic `ghrian`, and add an
+inverter with topic `ghrian/inverter/01`.
+
+To also run the agent against a real inverter (set `MODBUS_ADDR` in `.env` first):
+
+```bash
+docker compose --profile agent up -d
+```
+
+Images are multi-arch (amd64 + arm64):
+[`zavan/ghrian-agent`](https://hub.docker.com/r/zavan/ghrian-agent) ·
+[`zavan/ghrian-server`](https://hub.docker.com/r/zavan/ghrian-server).
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Each module is MIT-licensed as well.
