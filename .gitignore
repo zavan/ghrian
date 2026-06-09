@@ -1,0 +1,17 @@
+# The modules are independent git repositories with their own lifecycle — this
+# umbrella repo only hosts project-wide docs and links to them. Never vendor them
+# in here (and homekit is private).
+/agent/
+/server/
+/homekit/
+
+# OS / editor / tooling
+.DS_Store
+.DS_Store?
+._*
+.ruby-lsp/
+.idea/
+.vscode/
+.claude/
+*.swp
+*~
