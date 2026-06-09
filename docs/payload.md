@@ -12,12 +12,15 @@ The agent publishes under a per-inverter **base topic** (configurable; default b
 
 | Topic | Retained | QoS | Payload |
 | --- | --- | --- | --- |
-| `<base_topic>` | yes (default) | 0 (default) | JSON data message (below) |
+| `<base_topic>` | yes (default) | 1 (default) | JSON data message (below) |
 | `<base_topic>/availability` | **yes** | 1 | `online` or `offline` |
 
 Data publishes are retained by default so a freshly-connected consumer immediately
-receives the last reading instead of waiting for the next poll. Consumers subscribe
-at QoS 1, so live availability transitions (`online`→`offline`) aren't dropped.
+receives the last reading instead of waiting for the next poll. Both producer and
+consumers default to QoS 1 (at-least-once), so neither readings nor live
+availability transitions (`online`→`offline`) are dropped. QoS 1 can redeliver, so
+consumers must treat each `(inverter, timestamp)` as idempotent — the reference
+server enforces this with a unique index that turns a redelivery into a no-op.
 
 A consumer subscribes to one wildcard (`<base_topic>/#`) and matches each message to
 an inverter by its topic, so new inverters need no consumer restart.
