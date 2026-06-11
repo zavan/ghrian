@@ -96,6 +96,48 @@ in `.env`. Both are multi-arch (amd64 + arm64):
 [`felipezavan/ghrian-agent`](https://hub.docker.com/r/felipezavan/ghrian-agent) ·
 [`felipezavan/ghrian-server`](https://hub.docker.com/r/felipezavan/ghrian-server).
 
+## How I run it
+
+The compose file above is the easy on-ramp; here's how the pieces actually run in my
+own setup — a useful worked example of the decoupled topology in the wild.
+
+**Broker + server — a Hetzner VPS.** The server is deployed with
+[Kamal](https://kamal-deploy.org) to a small Hetzner box. Kamal pulls the
+published [`felipezavan/ghrian-server`](https://hub.docker.com/r/felipezavan/ghrian-server)
+image and runs two roles — the Rails **web** app and the **MQTT listener** — plus a
+Mosquitto **broker** accessory. Host nginx reverse-proxies zavan.me
+to the web container, with TLS via a Cloudflare origin certificate. The broker is
+*not* exposed to the public internet: it's bound only to the box's
+[Tailscale](https://tailscale.com) address, so the only things that can reach MQTT are
+nodes on my tailnet.
+
+**Agent — a Raspberry Pi.** The agent runs on a Raspberry Pi on my home LAN, right
+next to the inverter, via its standalone Docker Compose (`restart: unless-stopped`, so
+it comes back after a power blip). It polls the inverter over Modbus TCP on the LAN and
+publishes to `ghrian/inverter/01`. The Pi is on the same tailnet, so it reaches the VPS
+broker over Tailscale rather than exposing anything to the internet — inverter data
+flows LAN → Pi → (encrypted Tailscale) → broker on the VPS, where the server's listener
+persists it.
+
+**Apple app — points at the server.** The native macOS/iOS/iPadOS app is configured
+with the server's base URL and an API token, and talks to
+the `/api/v1` REST endpoints from anywhere — no MQTT or Tailscale on the client side,
+since the public HTTPS server is the boundary.
+
+```
+   home LAN                         Tailscale                  public internet
+┌───────────────┐          ┌──────────────────────┐
+│ inverter      │          │  Hetzner VPS         │
+│   │ Modbus    │          │  ┌────────────────┐  │
+│   ▼           │ MQTT over│  │ mosquitto      │  │
+│ [agent] ──────┼──────────┼─▶│ (tailnet-only) │  │
+│  (Pi)         │ Tailscale│  └───────┬────────┘  │
+└───────────────┘          │          ▼           │     HTTPS    ┌─────────┐
+                           │   [server] ──────────┼─ zavan.me ─▶ │ [apple] │
+                           │   (web + listener)   │    /api/v1   └─────────┘
+                           └──────────────────────┘
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Each module is MIT-licensed as well.
